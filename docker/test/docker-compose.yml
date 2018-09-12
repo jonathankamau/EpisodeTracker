@@ -1,0 +1,36 @@
+version: '2.1'
+
+services:
+  test: 
+    build:
+      context: ../../
+      dockerfile: docker/test/Dockerfile
+    links:
+      - database
+    environment:
+        POSTGRES_USER: postgres
+        POSTGRES_DB: test-episodetracker
+        POSTGRES_PASSWORD: postgres
+    depends_on:
+      database:
+        condition: service_healthy
+    command: /test.sh
+    ports:
+      - "8000:8000"   
+    stdin_open: true
+    tty: true   
+
+  database:
+    image: postgres
+    restart: always
+    environment:
+        POSTGRES_USER: postgres
+        POSTGRES_DB: test-episodetracker
+        POSTGRES_PASSWORD: postgres
+    expose:
+      - "5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
